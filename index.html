@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>🏀 NBA Top Players</title>
+<!-- Installable web app (Add to Home Screen) -->
+<meta name="theme-color" content="#0b1020" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="NBA Stats" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="manifest" href="manifest.json" />
+<style>
+  :root {
+    --bg: #0b1020;
+    --bg2: #141b34;
+    --card: #1b2342;
+    --card-hi: #233056;
+    --accent: #ff6b35;
+    --accent2: #f7c948;
+    --blue: #4f9cff;
+    --text: #eaf0ff;
+    --muted: #8ea0c9;
+    --good: #38d39f;
+    --gold: #ffd23f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #1d2a55 0%, transparent 60%), linear-gradient(160deg, var(--bg) 0%, var(--bg2) 100%);
+    background-attachment: fixed;
+    color: var(--text);
+    min-height: 100vh;
+    /* respect iPhone notch / home indicator when installed fullscreen */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+             calc(60px + env(safe-area-inset-bottom)) env(safe-area-inset-left);
+  }
+  header { text-align: center; padding: 26px 16px 6px; }
+  .title { display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .bball { width: 46px; height: 46px; flex: none; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); }
+  header h1 {
+    font-size: clamp(26px, 6vw, 46px);
+    letter-spacing: -1px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-weight: 900;
+  }
+  header p { color: var(--muted); margin-top: 6px; font-size: 15px; }
+
+  /* Top navigation between the 4 sections */
+  .nav { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 16px auto 0; padding: 0 12px; }
+  .nav button {
+    border: none; background: var(--card); color: var(--text);
+    font-weight: 700; font-size: 15px; padding: 10px 18px; border-radius: 999px; cursor: pointer;
+    transition: transform .12s ease, background .15s ease;
+  }
+  .nav button:hover { background: var(--card-hi); transform: translateY(-1px); }
+  .nav button.active { background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #1a1205; }
+
+  /* Consistent breathing room between the nav and whatever view is shown */
+  #content > *:first-child:not(.controls):not(.state) { margin-top: 22px; }
+  .controls {
+    position: sticky; top: env(safe-area-inset-top); z-index: 20;
+    background: linear-gradient(180deg, rgba(11,16,32,0.97), rgba(11,16,32,0.85));
+    backdrop-filter: blur(8px);
+    padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); margin: 22px 0;
+  }
+  .controls-inner { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  .sortbar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .sortbar button {
+    border: none; background: var(--card); color: var(--text);
+    font-weight: 700; font-size: 14px; padding: 10px 16px; border-radius: 999px; cursor: pointer;
+    transition: transform .12s ease, background .15s ease;
+  }
+  .sortbar button:hover { background: var(--card-hi); transform: translateY(-1px); }
+  .sortbar button.active { background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #1a1205; }
+  #search {
+    width: 100%; max-width: 420px; padding: 12px 18px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06);
+    color: var(--text); font-size: 15px; outline: none;
+  }
+  #search::placeholder { color: var(--muted); }
+  #search:focus { border-color: var(--blue); }
+
+  .grid {
+    max-width: 1100px; margin: 0 auto; padding: 0 16px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px;
+  }
+  .card {
+    background: var(--card); border-radius: 18px; padding: 18px; cursor: pointer;
+    position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);
+    border-left: 4px solid var(--team, rgba(255,255,255,0.05)); /* team-color accent */
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0,0,0,0.4); }
+  .rank {
+    position: absolute; top: 12px; left: 14px; z-index: 3; font-size: 13px; font-weight: 900;
+    color: var(--accent2); background: rgba(0,0,0,0.6); padding: 3px 9px; border-radius: 999px;
+  }
+  /* Favorite star button */
+  .fav {
+    position: absolute; top: 8px; right: 8px; z-index: 3;
+    background: rgba(0,0,0,0.28); border: none; cursor: pointer;
+    width: 34px; height: 34px; border-radius: 50%; font-size: 17px; line-height: 1;
+    color: #6c7aa3; transition: transform .12s ease;
+  }
+  .fav:hover { transform: scale(1.15); }
+  .fav.on { color: var(--gold); }
+  .card .head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  /* Avatar with initials fallback (shows when a player has no ESPN photo) */
+  .avatar {
+    position: relative; border-radius: 50%; flex: none; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(150deg, var(--card-hi), #2d3b66);
+    color: var(--text); font-weight: 800; letter-spacing: .5px;
+  }
+  /* The photo gets its own opaque background so transparent headshot PNGs
+     don't reveal the initials sitting behind them. Initials only show if the
+     photo is missing or fails to load (onerror removes the <img>). */
+  .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    background: linear-gradient(150deg, var(--card-hi), #2d3b66); }
+  .avatar.av-sm { width: 64px; height: 64px; border: 2px solid var(--accent); font-size: 20px; }
+  .avatar.av-lg { width: 76px; height: 76px; border: 3px solid var(--accent); font-size: 24px; }
+  .avatar.av-cmp { width: 78px; height: 78px; border: 3px solid var(--accent); font-size: 24px; margin: 0 auto; }
+  .name { font-weight: 800; font-size: 17px; line-height: 1.15; padding-right: 26px; }
+  .meta { color: var(--muted); font-size: 12.5px; margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+  .meta img.logo { width: 16px; height: 16px; }
+  .statrow { display: flex; justify-content: space-between; text-align: center; }
+  .stat .v { font-size: 22px; font-weight: 900; }
+  .stat .l { font-size: 11px; color: var(--muted); letter-spacing: .5px; }
+  .stat.hl .v { color: var(--accent2); }
+  .litestat { text-align: center; color: var(--blue); font-weight: 700; font-size: 14px; padding: 8px 0 2px; }
+
+  /* Team grid */
+  .teamgrid {
+    max-width: 1100px; margin: 0 auto; padding: 0 16px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 14px;
+  }
+  .teamcell {
+    background: var(--card); border-radius: 16px; padding: 16px 10px; text-align: center;
+    cursor: pointer; border: 1px solid rgba(255,255,255,0.05);
+    border-top: 3px solid var(--team, rgba(255,255,255,0.08));
+    position: relative;
+    transition: transform .15s ease, background .15s ease;
+  }
+  .teamcell:hover { transform: translateY(-4px); background: var(--card-hi); }
+  .teamcell img { width: 56px; height: 56px; object-fit: contain; }
+  .teamcell .tn { font-size: 13px; font-weight: 700; margin-top: 8px; }
+  .backbar { max-width: 1100px; margin: 0 auto 14px; padding: 0 16px; display: flex; align-items: center; gap: 12px; }
+  .backbtn {
+    background: var(--card); border: none; color: var(--text); font-weight: 700; cursor: pointer;
+    padding: 9px 16px; border-radius: 999px; font-size: 14px;
+  }
+  .backbtn:hover { background: var(--card-hi); }
+  .backbar h2 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
+  .backbar h2 img { width: 30px; height: 30px; object-fit: contain; }
+
+  /* Stat Leaders podium */
+  .podium-wrap { max-width: 1100px; margin: 0 auto 22px; padding: 0 16px; }
+  .podium-title { text-align: center; font-weight: 800; font-size: 18px; margin-bottom: 14px; color: var(--accent2); }
+  .podium { display: flex; justify-content: center; align-items: flex-end; gap: 12px; }
+  .pod {
+    background: var(--card); border-radius: 16px 16px 0 0; padding: 12px 10px 0; cursor: pointer;
+    flex: 1 1 0; min-width: 0; max-width: 168px; text-align: center;
+    border-top: 4px solid var(--team); transition: transform .15s ease;
+  }
+  .pod:hover { transform: translateY(-4px); }
+  .pod-medal { font-size: 26px; line-height: 1; }
+  .pod .avatar { margin: 6px auto 8px; }
+  /* Reserve a fixed 2-line height so longer names don't make a card taller */
+  .pod-name {
+    font-weight: 700; font-size: 13.5px; line-height: 1.2; height: 2.4em;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; padding: 0 4px;
+  }
+  .pod-val { font-size: 23px; font-weight: 900; color: var(--accent2); margin: 4px 0 6px; }
+  .pod-stand { background: rgba(0,0,0,0.28); padding: 6px; font-weight: 800; color: var(--muted); font-size: 13px; }
+  .pod-1 { padding-top: 22px; max-width: 184px; }
+  .pod-1 .pod-medal { font-size: 34px; }
+
+  /* Scores (games) */
+  .card.game { cursor: default; padding: 14px 16px; border-left: 4px solid rgba(255,255,255,0.05); }
+  .card.game:hover { transform: none; box-shadow: none; }
+  .g-status { text-align: center; font-size: 12px; color: var(--muted); font-weight: 700; margin-bottom: 10px; letter-spacing: .3px; }
+  .g-status.g-live { color: #ff5252; }
+  .g-team { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+  .g-team img { width: 30px; height: 30px; object-fit: contain; flex: none; }
+  .g-name { font-weight: 700; font-size: 15px; }
+  .g-score { margin-left: auto; font-weight: 800; font-size: 20px; }
+  .g-won { color: var(--accent2); }
+
+  /* Standings */
+  .standings-wrap { max-width: 1000px; margin: 0 auto; padding: 0 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .stand-head { font-size: 18px; margin-bottom: 12px; color: var(--accent2); text-align: center; }
+  .stand-row {
+    display: flex; align-items: center; gap: 10px; padding: 9px 12px; margin-bottom: 6px;
+    border-radius: 10px; cursor: pointer; background: var(--card); border-left: 4px solid var(--team);
+  }
+  .stand-row:hover { background: var(--card-hi); }
+  .stand-seed { width: 22px; text-align: center; font-weight: 800; color: var(--muted); flex: none; }
+  .stand-row img { width: 26px; height: 26px; object-fit: contain; flex: none; }
+  .stand-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stand-rec { margin-left: auto; font-weight: 800; font-size: 14px; flex: none; }
+  @media (max-width: 700px) { .standings-wrap { grid-template-columns: 1fr; } }
+
+  /* Favorites section headings */
+  .fav-head { max-width: 1100px; margin: 6px auto 14px; padding: 0 16px; font-size: 20px; }
+  .fav-head ~ .fav-head { margin-top: 26px; }
+
+  /* Compare */
+  .compare-wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+  .pickrow { display: flex; gap: 12px; margin-bottom: 22px; align-items: flex-start; }
+  .picker { position: relative; flex: 1; min-width: 0; }
+  .pick-input {
+    width: 100%; padding: 13px 14px; border-radius: 14px; font-size: 15px; font-weight: 600;
+    background: var(--card); color: var(--text); border: 1px solid rgba(255,255,255,0.12); outline: none;
+  }
+  .pick-input::placeholder { color: var(--muted); font-weight: 500; }
+  .pick-input:focus { border-color: var(--blue); }
+  .pick-list {
+    position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 6px);
+    background: var(--card-hi); border: 1px solid rgba(255,255,255,0.14); border-radius: 14px;
+    max-height: 300px; overflow-y: auto; box-shadow: 0 14px 34px rgba(0,0,0,0.55);
+  }
+  .pick-list:empty { display: none; }
+  .pick-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; }
+  .pick-item:hover { background: rgba(255,255,255,0.08); }
+  .pick-item img { width: 26px; height: 26px; object-fit: contain; flex: none; }
+  .pick-item .pn { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pick-item .pt { font-size: 12px; color: var(--muted); margin-left: auto; flex: none; }
+  .vs { align-self: center; font-weight: 900; color: var(--accent); font-size: 18px; padding-top: 13px; }
+  .cmp-heads { display: flex; justify-content: space-between; margin-bottom: 16px; }
+  .cmp-head { width: 46%; text-align: center; }
+  .cmp-head > img { width: 78px; height: 78px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); background: var(--bg2); }
+  .cmp-head .nm { font-weight: 800; margin-top: 8px; font-size: 15px; }
+  .cmp-head .tm { color: var(--muted); font-size: 12px; }
+  .cmp-row { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
+  .cmp-val { width: 46%; text-align: center; font-size: 19px; font-weight: 800; padding: 8px; border-radius: 10px; background: rgba(0,0,0,0.2); }
+  .cmp-val.win { background: linear-gradient(90deg, rgba(56,211,159,0.25), rgba(79,156,255,0.25)); color: var(--good); }
+  .cmp-lbl { flex: 1; text-align: center; font-size: 12px; color: var(--muted); letter-spacing: .5px; }
+
+  /* Modal */
+  .overlay { position: fixed; inset: 0; z-index: 50; background: rgba(4,7,16,0.78); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 16px; }
+  .overlay.show { display: flex; }
+  .modal { background: linear-gradient(160deg, var(--card-hi), var(--card)); border-radius: 22px; max-width: 460px; width: 100%; padding: 26px; position: relative; border: 1px solid rgba(255,255,255,0.08); max-height: 90vh; overflow-y: auto; }
+  .close { position: absolute; top: 14px; right: 16px; background: rgba(255,255,255,0.1); border: none; color: var(--text); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 18px; }
+  .modal .mfav { position: absolute; top: 14px; left: 16px; background: rgba(255,255,255,0.1); border: none; cursor: pointer; width: 34px; height: 34px; border-radius: 50%; font-size: 18px; color: #6c7aa3; }
+  .modal .mfav.on { color: var(--gold); }
+  .modal h2.mname { font-size: 24px; text-align: center; padding: 0 44px; margin-bottom: 16px; }
+  .modal .mhead { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 22px; }
+  .modal .mhead > img { width: 76px; height: 76px; border-radius: 50%; border: 3px solid var(--accent); object-fit: cover; background: var(--bg2); flex: none; }
+  .modal .mteam { color: var(--muted); font-size: 15px; font-weight: 600; }
+  .biggrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+  .bigstat { background: rgba(0,0,0,0.22); border-radius: 12px; padding: 12px 6px; text-align: center; }
+  .bigstat .v { font-size: 24px; font-weight: 900; color: var(--accent2); }
+  .bigstat .l { font-size: 11px; color: var(--muted); }
+  .bar { margin-bottom: 12px; }
+  .bar .top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+  .bar .track { height: 10px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
+  .bar .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--blue), var(--good)); }
+  .extra { display: flex; justify-content: space-around; margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; }
+  .extra .v { font-weight: 800; font-size: 17px; }
+  .extra .l { font-size: 11px; color: var(--muted); text-align: center; }
+
+  .state { text-align: center; color: var(--muted); padding: 60px 20px; font-size: 16px; }
+  .spinner { width: 42px; height: 42px; border: 4px solid rgba(255,255,255,0.15); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 16px; animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .retry { margin-top: 14px; background: var(--accent); border: none; color: #1a1205; font-weight: 800; padding: 10px 22px; border-radius: 999px; cursor: pointer; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; padding: 0 16px; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <!-- Inline SVG basketball so it always looks right, no matter the device -->
+      <svg class="bball" viewBox="0 0 100 100" aria-hidden="true">
+        <defs>
+          <radialGradient id="bg" cx="38%" cy="32%" r="75%">
+            <stop offset="0%" stop-color="#ff9b4a"/>
+            <stop offset="58%" stop-color="#e8731f"/>
+            <stop offset="100%" stop-color="#bf520f"/>
+          </radialGradient>
+        </defs>
+        <circle cx="50" cy="50" r="47" fill="url(#bg)" stroke="#2a1a0a" stroke-width="2.5"/>
+        <g stroke="#2a1a0a" stroke-width="2.6" fill="none" stroke-linecap="round">
+          <line x1="50" y1="3" x2="50" y2="97"/>
+          <line x1="3" y1="50" x2="97" y2="50"/>
+          <path d="M18 11 Q41 50 18 89"/>
+          <path d="M82 11 Q59 50 82 89"/>
+        </g>
+      </svg>
+      <h1>NBA Top Players</h1>
+    </div>
+    <p id="season-label">Live season stats</p>
+    <div class="nav" id="nav">
+      <button data-view="players" class="active">Players</button>
+      <button data-view="teams">Teams</button>
+      <button data-view="scores">Scores</button>
+      <button data-view="standings">Standings</button>
+      <button data-view="compare">Compare</button>
+      <button data-view="favorites">⭐ Favorites</button>
+    </div>
+  </header>
+
+  <div id="content">
+    <div class="state"><div class="spinner"></div>Loading NBA stats…</div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal" id="modal"></div>
+  </div>
+
+  <footer>Data from ESPN • Tap any player for full stats • Built for a future GM 🏆</footer>
+
+<script>
+const STATS_API = "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/statistics/byathlete";
+
+// All 30 NBA teams (baked in — the teams API has no CORS, but logo images load fine).
+// Logos: https://a.espncdn.com/i/teamlogos/nba/500/<abbr>.png
+const NBA_TEAMS = [
+  {id:"1",abbr:"atl",name:"Atlanta Hawks"},
+  {id:"2",abbr:"bos",name:"Boston Celtics"},
+  {id:"17",abbr:"bkn",name:"Brooklyn Nets"},
+  {id:"30",abbr:"cha",name:"Charlotte Hornets"},
+  {id:"4",abbr:"chi",name:"Chicago Bulls"},
+  {id:"5",abbr:"cle",name:"Cleveland Cavaliers"},
+  {id:"6",abbr:"dal",name:"Dallas Mavericks"},
+  {id:"7",abbr:"den",name:"Denver Nuggets"},
+  {id:"8",abbr:"det",name:"Detroit Pistons"},
+  {id:"9",abbr:"gs",name:"Golden State Warriors"},
+  {id:"10",abbr:"hou",name:"Houston Rockets"},
+  {id:"11",abbr:"ind",name:"Indiana Pacers"},
+  {id:"12",abbr:"lac",name:"LA Clippers"},
+  {id:"13",abbr:"lal",name:"Los Angeles Lakers"},
+  {id:"29",abbr:"mem",name:"Memphis Grizzlies"},
+  {id:"14",abbr:"mia",name:"Miami Heat"},
+  {id:"15",abbr:"mil",name:"Milwaukee Bucks"},
+  {id:"16",abbr:"min",name:"Minnesota Timberwolves"},
+  {id:"3",abbr:"no",name:"New Orleans Pelicans"},
+  {id:"18",abbr:"ny",name:"New York Knicks"},
+  {id:"25",abbr:"okc",name:"Oklahoma City Thunder"},
+  {id:"19",abbr:"orl",name:"Orlando Magic"},
+  {id:"20",abbr:"phi",name:"Philadelphia 76ers"},
+  {id:"21",abbr:"phx",name:"Phoenix Suns"},
+  {id:"22",abbr:"por",name:"Portland Trail Blazers"},
+  {id:"23",abbr:"sac",name:"Sacramento Kings"},
+  {id:"24",abbr:"sa",name:"San Antonio Spurs"},
+  {id:"28",abbr:"tor",name:"Toronto Raptors"},
+  {id:"26",abbr:"utah",name:"Utah Jazz"},
+  {id:"27",abbr:"wsh",name:"Washington Wizards"},
+].map(t => ({ ...t, logo: `https://a.espncdn.com/i/teamlogos/nba/500/${t.abbr}.png` }));
+
+// Primary team colors (hex), baked in for card accents
+const TEAM_COLORS = {"1":"c8102e","2":"008348","17":"6f6f6f","30":"008ca8","4":"ce1141","5":"860038","6":"0064b1","7":"0e2240","8":"1d428a","9":"fdb927","10":"ce1141","11":"0c2340","12":"12173f","13":"552583","29":"5d76a9","14":"98002e","15":"00471b","16":"266092","3":"0a2240","18":"f58426","25":"007ac1","19":"0150b5","20":"1d428a","21":"e56020","22":"e03a3e","23":"5a2d81","24":"909090","28":"d91244","26":"4e008e","27":"e31837"};
+NBA_TEAMS.forEach(t => { t.color = "#" + (TEAM_COLORS[t.id] || "8ea0c9"); });
+const teamColor = id => "#" + (TEAM_COLORS[String(id)] || "8ea0c9");
+
+// Leaderboard sort options
+const SORTS = {
+  points:   { stat: "avgPoints",   label: "PPG" },
+  rebounds: { stat: "avgRebounds", label: "RPG" },
+  assists:  { stat: "avgAssists",  label: "APG" },
+  steals:   { stat: "avgSteals",   label: "SPG" },
+  blocks:   { stat: "avgBlocks",   label: "BPG" },
+};
+const TOP_N = 100;
+const ROSTER_API = "https://site.web.api.espn.com/apis/site/v2/sports/basketball/nba/teams";
+const PLAYER_STATS_API = "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes";
+const SCOREBOARD_API = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard";
+const STANDINGS_API = "https://site.api.espn.com/apis/v2/sports/basketball/nba/standings";
+
+let allPlayers = [];     // ranked players from the leaderboard feed (have full stats)
+let allTeams = NBA_TEAMS; // all 30 teams {id,name,abbr,logo}
+let byId = {};           // playerId -> ranked player
+let leagueIndex = {};    // playerId -> EVERY player in the league (rosters), stats loaded on demand
+let leagueReady = false; // true once all 30 rosters have loaded
+let seasonYear = null;   // e.g. 2026 for the 2025-26 season
+let view = "players";    // current section
+let sortKey = "points";  // current leaderboard sort
+let selectedTeam = null; // teamId when viewing one team
+let searchText = "";     // current search box text (kept across re-renders)
+
+// Look up a player by id in either the ranked list or the full league index
+function lookup(id) { return byId[id] || leagueIndex[id] || null; }
+function hasStats(p) { return p && p.s && Object.keys(p.s).length > 0; }
+
+const content = document.getElementById("content");
+
+/* ---------- Favorites (saved in the browser) ---------- */
+function getFavs() {
+  try { return JSON.parse(localStorage.getItem("nba_favs") || "[]"); }
+  catch { return []; }
+}
+function isFav(id) { return getFavs().includes(id); }
+// Favorite TEAMS (separate list)
+function getFavTeams() { try { return JSON.parse(localStorage.getItem("nba_fav_teams") || "[]"); } catch { return []; } }
+function isFavTeam(id) { return getFavTeams().includes(String(id)); }
+function toggleFavTeam(id) {
+  id = String(id);
+  const f = getFavTeams(); const i = f.indexOf(id);
+  if (i >= 0) f.splice(i, 1); else f.push(id);
+  localStorage.setItem("nba_fav_teams", JSON.stringify(f));
+}
+let scoresCache = null;    // today's games
+let standingsCache = null; // conference standings
+function toggleFav(id) {
+  const f = getFavs();
+  const i = f.indexOf(id);
+  if (i >= 0) f.splice(i, 1); else f.push(id);
+  localStorage.setItem("nba_favs", JSON.stringify(f));
+}
+
+/* ---------- Helpers ---------- */
+function num(v, d = 1) {
+  if (v === undefined || v === null || isNaN(v)) return "—";
+  return Number(v).toFixed(d);
+}
+function initials(name) {
+  return (name || "").split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+}
+// Avatar that falls back to initials if the photo is missing or fails to load
+function avatar(p, cls) {
+  const img = p.shot ? `<img src="${p.shot}" alt="${p.name}" loading="lazy" onerror="this.remove()">` : "";
+  return `<span class="avatar ${cls}"><span>${initials(p.name)}</span>${img}</span>`;
+}
+function flatten(entry, defs) {
+  const flat = {};
+  entry.categories.forEach(ac => {
+    const def = defs.find(c => c.name === ac.name);
+    if (!def) return;
+    def.names.forEach((n, i) => { flat[n] = ac.values[i]; });
+  });
+  return flat;
+}
+
+/* ---------- Data loading (one time) ---------- */
+async function loadData() {
+  content.innerHTML = '<div class="state"><div class="spinner"></div>Loading NBA stats…</div>';
+  try {
+    const statsUrl = `${STATS_API}?region=us&lang=en&contentorigin=espn&isqualified=false&limit=400&sort=offensive.avgPoints%3Adesc`;
+    const statsRes = await fetch(statsUrl);
+    if (!statsRes.ok) throw new Error("stats " + statsRes.status);
+    const data = await statsRes.json();
+    const defs = data.categories || [];
+    seasonYear = data.requestedSeason?.year || data.currentSeason?.year || null;
+
+    document.getElementById("season-label").textContent =
+      (data.requestedSeason?.displayName || "") + " season stats";
+
+    allPlayers = data.athletes.map(a => {
+      const at = a.athlete;
+      const s = flatten(a, defs);
+      const logo = (at.teamLogos && at.teamLogos[0]) ? at.teamLogos[0].href : "";
+      return {
+        id: at.id, name: at.displayName,
+        team: at.teamName || at.teamShortName || "", teamId: String(at.teamId || ""),
+        logo, pos: at.position?.abbreviation || "", shot: at.headshot?.href || "", s,
+      };
+    });
+    byId = {};
+    allPlayers.forEach(p => { byId[p.id] = p; });
+
+    render();
+    loadLeague(); // fill in the full league (all 30 rosters) in the background
+  } catch (e) {
+    content.innerHTML =
+      `<div class="state">😕 Couldn't load stats right now.<br>Check your internet connection.<br>` +
+      `<button class="retry" onclick="loadData()">Try again</button></div>`;
+  }
+}
+
+/* ---------- Full league index (every player, so search finds anyone) ---------- */
+async function loadLeague() {
+  // Start with the ranked players we already have (they keep their stats)
+  const idx = {};
+  allPlayers.forEach(p => { idx[p.id] = p; });
+  const results = await Promise.allSettled(NBA_TEAMS.map(t =>
+    fetch(`${ROSTER_API}/${t.id}/roster`).then(r => r.json()).then(j => ({ t, j }))
+  ));
+  results.forEach(res => {
+    if (res.status !== "fulfilled") return;
+    const { t, j } = res.value;
+    let list = j.athletes || [];
+    if (list.length && list[0].items) list = list.flatMap(g => g.items); // handle grouped rosters
+    list.forEach(a => {
+      const id = String(a.id);
+      if (idx[id]) return; // ranked player already present (with stats)
+      idx[id] = {
+        id, name: a.displayName, team: t.name, teamId: t.id, logo: t.logo,
+        pos: a.position?.abbreviation || "", shot: a.headshot?.href || "", s: null,
+      };
+    });
+  });
+  leagueIndex = idx;
+  leagueReady = true;
+  // Refresh whatever's on screen so newly-available players show up
+  render();
+}
+
+/* Fetch one player's current-season averages on demand (for roster-only players) */
+async function fetchPlayerStats(p) {
+  if (hasStats(p)) return p.s;
+  const res = await fetch(`${PLAYER_STATS_API}/${p.id}/stats?region=us&lang=en`);
+  if (!res.ok) throw new Error("stats " + res.status);
+  const d = await res.json();
+  const avg = (d.categories || []).find(c => c.name === "averages");
+  const splits = avg?.statistics || [];
+  if (!avg || !splits.length) throw new Error("no averages");
+  // Pick the current season's split (by year), else the most recent one
+  const split = splits.find(s => (s.season && s.season.year) === seasonYear) || splits[splits.length - 1];
+  const flat = {};
+  avg.names.forEach((n, i) => {
+    const v = parseFloat(split.stats[i]);
+    flat[n] = isNaN(v) ? split.stats[i] : v;
+  });
+  p.s = flat;
+  return flat;
+}
+
+/* ---------- Card builder (shared) ---------- */
+function playerCard(p, rank, hlStat) {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.style.setProperty("--team", teamColor(p.teamId)); // team-color accent
+  const fav = isFav(p.id);
+  card.innerHTML = `
+    <button class="fav ${fav ? "on" : ""}" title="Favorite" data-fav="${p.id}">${fav ? "★" : "☆"}</button>
+    ${rank ? `<div class="rank">#${rank}</div>` : ""}
+    <div class="head">
+      ${avatar(p, "av-sm")}
+      <div>
+        <div class="name">${p.name}</div>
+        <div class="meta">
+          ${p.logo ? `<img class="logo" src="${p.logo}" alt="">` : ""}
+          <span>${p.team}${p.pos ? " • " + p.pos : ""}</span>
+        </div>
+      </div>
+    </div>
+    ${hasStats(p) ? `
+    <div class="statrow">
+      <div class="stat ${hlStat==='avgPoints'?'hl':''}"><div class="v">${num(p.s.avgPoints)}</div><div class="l">PPG</div></div>
+      <div class="stat ${hlStat==='avgRebounds'?'hl':''}"><div class="v">${num(p.s.avgRebounds)}</div><div class="l">RPG</div></div>
+      <div class="stat ${hlStat==='avgAssists'?'hl':''}"><div class="v">${num(p.s.avgAssists)}</div><div class="l">APG</div></div>
+    </div>` : `<div class="litestat">Tap for season stats →</div>`}`;
+  card.addEventListener("click", e => {
+    const favBtn = e.target.closest("[data-fav]");
+    if (favBtn) { e.stopPropagation(); toggleFav(p.id); render(); return; }
+    openModal(p);
+  });
+  return card;
+}
+
+function cardsGrid(list, hlStat, withRank) {
+  const grid = document.createElement("div");
+  grid.className = "grid";
+  list.forEach((p, i) => grid.appendChild(playerCard(p, withRank ? i + 1 : null, hlStat)));
+  return grid;
+}
+
+// One team tile (used by Teams grid and Favorites)
+function teamCell(t) {
+  const cell = document.createElement("div");
+  cell.className = "teamcell";
+  cell.style.setProperty("--team", t.color);
+  const fav = isFavTeam(t.id);
+  cell.innerHTML = `
+    <button class="fav ${fav ? "on" : ""}" data-favteam="${t.id}" title="Favorite team">${fav ? "★" : "☆"}</button>
+    <img src="${t.logo}" alt="${t.name}" onerror="this.style.visibility='hidden'">
+    <div class="tn">${t.name}</div>`;
+  cell.addEventListener("click", e => {
+    const favBtn = e.target.closest("[data-favteam]");
+    if (favBtn) { e.stopPropagation(); toggleFavTeam(t.id); render(); return; }
+    selectedTeam = t.id; renderTeams();
+  });
+  return cell;
+}
+
+// Gold/silver/bronze podium for the top 3 in the active stat
+function buildPodium(top3, statKey, label) {
+  const wrap = document.createElement("div");
+  wrap.className = "podium-wrap";
+  const order = [1, 0, 2];       // render 2nd, 1st, 3rd so #1 sits in the middle
+  const medals = ["🥇", "🥈", "🥉"];
+  wrap.innerHTML = `<div class="podium-title">${label} Leaders</div><div class="podium">` +
+    order.map(idx => {
+      const p = top3[idx];
+      if (!p) return "";
+      return `<div class="pod pod-${idx + 1}" data-id="${p.id}" style="--team:${teamColor(p.teamId)}">
+        <div class="pod-medal">${medals[idx]}</div>
+        ${avatar(p, "av-sm")}
+        <div class="pod-name">${p.name}</div>
+        <div class="pod-val">${num(p.s[statKey])}</div>
+        <div class="pod-stand">#${idx + 1}</div>
+      </div>`;
+    }).join("") + `</div>`;
+  wrap.querySelectorAll(".pod").forEach(el =>
+    el.addEventListener("click", () => { const pl = lookup(el.dataset.id); if (pl) openModal(pl); }));
+  return wrap;
+}
+
+/* ---------- Main render: pick the right view ---------- */
+function render() {
+  document.querySelectorAll("#nav button").forEach(b =>
+    b.classList.toggle("active", b.dataset.view === view));
+  if (view === "players")        renderPlayers();
+  else if (view === "teams")     renderTeams();
+  else if (view === "scores")    renderScores();
+  else if (view === "standings") renderStandings();
+  else if (view === "compare")   renderCompare();
+  else if (view === "favorites") renderFavorites();
+}
+
+/* ---- Players (leaderboards) ---- */
+function renderPlayers() {
+  const hlStat = SORTS[sortKey].stat;
+  content.innerHTML = "";
+
+  const controls = document.createElement("div");
+  controls.className = "controls";
+  controls.innerHTML = `
+    <div class="controls-inner">
+      <div class="sortbar">
+        ${Object.keys(SORTS).map(k =>
+          `<button data-key="${k}" class="${k===sortKey?'active':''}">${k[0].toUpperCase()+k.slice(1)}</button>`).join("")}
+      </div>
+      <input id="search" type="text" placeholder="🔍 Search any NBA player…" autocomplete="off" value="${searchText.replace(/"/g, '&quot;')}">
+    </div>`;
+  content.appendChild(controls);
+
+  const holder = document.createElement("div");
+  content.appendChild(holder);
+
+  const draw = () => {
+    searchText = document.getElementById("search").value || "";
+    const q = searchText.trim().toLowerCase();
+    // Rank the ranked players by the chosen stat so we can show rank badges
+    const rankedList = [...allPlayers].sort((a, b) => (b.s[hlStat] || 0) - (a.s[hlStat] || 0));
+    const rankOf = new Map(rankedList.map((p, i) => [p.id, i + 1]));
+
+    let shown;
+    if (!q) {
+      // No search: top 100 leaderboard
+      shown = rankedList.slice(0, TOP_N).map(p => ({ p, rank: rankOf.get(p.id) }));
+    } else {
+      // Search the WHOLE league (every player), once rosters are loaded
+      const pool = leagueReady ? Object.values(leagueIndex) : allPlayers;
+      shown = pool
+        .filter(p => p.name.toLowerCase().includes(q))
+        .sort((a, b) =>
+          // ranked players first (by the chosen stat), then everyone else by name
+          (b.s?.[hlStat] || 0) - (a.s?.[hlStat] || 0) || a.name.localeCompare(b.name))
+        .map(p => ({ p, rank: rankOf.get(p.id) || null }));
+    }
+
+    holder.innerHTML = "";
+    if (!shown.length) {
+      holder.innerHTML = '<div class="state">' +
+        (q && !leagueReady ? 'Loading the full league… try again in a moment. 🏀'
+                           : 'No player by that name. Check the spelling and try again. 🏀') +
+        '</div>';
+      return;
+    }
+    // Podium for the top 3 (only on the plain leaderboard, not while searching)
+    if (!q) holder.appendChild(buildPodium(rankedList.slice(0, 3), hlStat, SORTS[sortKey].label));
+
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    shown.forEach(r => grid.appendChild(playerCard(r.p, r.rank, hlStat)));
+    holder.appendChild(grid);
+
+    // While searching before the league has loaded, let the user know more are coming
+    if (q && !leagueReady) {
+      const note = document.createElement("div");
+      note.className = "state"; note.style.padding = "20px";
+      note.textContent = "Loading the rest of the league… more players may appear.";
+      holder.appendChild(note);
+    }
+  };
+
+  controls.querySelector(".sortbar").addEventListener("click", e => {
+    if (e.target.tagName === "BUTTON") { sortKey = e.target.dataset.key; renderPlayers(); }
+  });
+  document.getElementById("search").addEventListener("input", draw);
+  draw();
+}
+
+/* ---- Teams ---- */
+function renderTeams() {
+  content.innerHTML = "";
+  if (!selectedTeam) {
+    const grid = document.createElement("div");
+    grid.className = "teamgrid";
+    // favorites first, then the rest
+    const sorted = [...allTeams].sort((a, b) => (isFavTeam(b.id) - isFavTeam(a.id)) || a.name.localeCompare(b.name));
+    sorted.forEach(t => grid.appendChild(teamCell(t)));
+    content.appendChild(grid);
+    return;
+  }
+  // one team's players — full roster once loaded, otherwise the ranked subset
+  const team = allTeams.find(t => t.id === selectedTeam);
+  const source = leagueReady ? Object.values(leagueIndex) : allPlayers;
+  const players = source.filter(p => p.teamId === selectedTeam)
+    .sort((a, b) => (b.s?.avgPoints || 0) - (a.s?.avgPoints || 0) || a.name.localeCompare(b.name));
+  const bar = document.createElement("div");
+  bar.className = "backbar";
+  bar.innerHTML = `<button class="backbtn">← All teams</button>
+    <h2><img src="${team?.logo || ""}" alt="" onerror="this.style.display='none'">${team?.name || "Team"}</h2>`;
+  bar.querySelector(".backbtn").addEventListener("click", () => { selectedTeam = null; renderTeams(); });
+  content.appendChild(bar);
+  if (!players.length) {
+    content.innerHTML += '<div class="state">' +
+      (leagueReady ? "Couldn't load this team's roster. 🏀"
+                   : '<div class="spinner"></div>Loading roster…') + '</div>';
+    return;
+  }
+  content.appendChild(cardsGrid(players, "avgPoints", false));
+}
+
+/* ---- Scores (today's games) ---- */
+async function renderScores() {
+  content.innerHTML = "";
+  if (!scoresCache) {
+    content.innerHTML = '<div class="state"><div class="spinner"></div>Loading today\'s games…</div>';
+    try {
+      const r = await fetch(SCOREBOARD_API);
+      const d = await r.json();
+      scoresCache = { label: d.day?.date || "", events: d.events || [] };
+    } catch { content.innerHTML = '<div class="state">Couldn\'t load games right now. 🏀</div>'; return; }
+    if (view !== "scores") return; // user navigated away while loading
+    content.innerHTML = "";
+  }
+  const games = scoresCache.events;
+  if (!games.length) {
+    content.innerHTML = '<div class="state">No NBA games scheduled today.<br>Check back on game day! 🏀</div>';
+    return;
+  }
+  const grid = document.createElement("div");
+  grid.className = "grid";
+  games.forEach(e => {
+    const c = e.competitions[0];
+    const home = c.competitors.find(t => t.homeAway === "home") || c.competitors[0];
+    const away = c.competitors.find(t => t.homeAway === "away") || c.competitors[1];
+    const st = e.status.type;
+    const live = st.state === "in";
+    const done = st.state === "post";
+    const row = (t, won) => `
+      <div class="g-team">
+        <img src="${t.team.logo}" alt="" onerror="this.style.visibility='hidden'">
+        <span class="g-name ${won ? "g-won" : ""}">${t.team.abbreviation}</span>
+        <span class="g-score ${won ? "g-won" : ""}">${(done || live) ? (t.score ?? "") : ""}</span>
+      </div>`;
+    const hs = +home.score, as = +away.score;
+    const card = document.createElement("div");
+    card.className = "card game";
+    card.innerHTML = `
+      <div class="g-status ${live ? "g-live" : ""}">${live ? "● LIVE" : st.shortDetail}</div>
+      ${row(away, done && as > hs)}
+      ${row(home, done && hs > as)}`;
+    grid.appendChild(card);
+  });
+  content.appendChild(grid);
+}
+
+/* ---- Standings ---- */
+async function renderStandings() {
+  content.innerHTML = "";
+  if (!standingsCache) {
+    content.innerHTML = '<div class="state"><div class="spinner"></div>Loading standings…</div>';
+    try {
+      const r = await fetch(STANDINGS_API);
+      const d = await r.json();
+      standingsCache = (d.children || []).map(conf => ({
+        name: conf.name,
+        rows: (conf.standings?.entries || []).map(en => {
+          const get = n => (en.stats.find(s => s.name === n) || {});
+          return {
+            id: String(en.team.id), name: en.team.displayName,
+            logo: en.team.logos?.[0]?.href || `https://a.espncdn.com/i/teamlogos/nba/500/${(en.team.abbreviation||"").toLowerCase()}.png`,
+            w: get("wins").displayValue, l: get("losses").displayValue,
+            pct: get("winPercent").displayValue, seed: +(get("playoffSeed").value || 0),
+          };
+        }).sort((a, b) => (a.seed || 99) - (b.seed || 99)),
+      }));
+    } catch { content.innerHTML = '<div class="state">Couldn\'t load standings right now. 🏀</div>'; return; }
+    if (view !== "standings") return;
+    content.innerHTML = "";
+  }
+  const wrap = document.createElement("div");
+  wrap.className = "standings-wrap";
+  standingsCache.forEach(conf => {
+    const col = document.createElement("div");
+    col.className = "stand-col";
+    col.innerHTML = `<h2 class="stand-head">${conf.name}</h2>` +
+      conf.rows.map((t, i) => `
+        <div class="stand-row" data-id="${t.id}" style="--team:${teamColor(t.id)}">
+          <span class="stand-seed">${i + 1}</span>
+          <img src="${t.logo}" alt="" onerror="this.style.visibility='hidden'">
+          <span class="stand-name">${t.name}</span>
+          <span class="stand-rec">${t.w}-${t.l}</span>
+        </div>`).join("");
+    col.querySelectorAll(".stand-row").forEach(el =>
+      el.addEventListener("click", () => { view = "teams"; selectedTeam = el.dataset.id; render(); }));
+    wrap.appendChild(col);
+  });
+  content.appendChild(wrap);
+}
+
+/* ---- Compare ---- */
+let cmpA = "", cmpB = "";
+function renderCompare() {
+  content.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "compare-wrap";
+  // Whole league once rosters load, alphabetized
+  const source = (leagueReady ? Object.values(leagueIndex) : allPlayers)
+    .slice().sort((a, b) => a.name.localeCompare(b.name));
+  const nameOf = id => (lookup(id)?.name || "").replace(/"/g, "&quot;");
+  wrap.innerHTML = `
+    <div class="pickrow">
+      <div class="picker">
+        <input class="pick-input" id="pickA" type="text" placeholder="🔍 Search a player…" autocomplete="off" value="${cmpA ? nameOf(cmpA) : ""}">
+        <div class="pick-list" id="listA"></div>
+      </div>
+      <span class="vs">VS</span>
+      <div class="picker">
+        <input class="pick-input" id="pickB" type="text" placeholder="🔍 Search a player…" autocomplete="off" value="${cmpB ? nameOf(cmpB) : ""}">
+        <div class="pick-list" id="listB"></div>
+      </div>
+    </div>
+    <div id="cmpOut"></div>`;
+  content.appendChild(wrap);
+
+  const out = wrap.querySelector("#cmpOut");
+  const rows = [
+    ["avgPoints", "POINTS", 1], ["avgRebounds", "REBOUNDS", 1], ["avgAssists", "ASSISTS", 1],
+    ["avgSteals", "STEALS", 1], ["avgBlocks", "BLOCKS", 1],
+    ["fieldGoalPct", "FIELD GOAL %", 1], ["threePointFieldGoalPct", "3-POINT %", 1], ["freeThrowPct", "FREE THROW %", 1],
+  ];
+  const drawCmp = async () => {
+    const a = lookup(cmpA), b = lookup(cmpB);
+    if (!a || !b) { out.innerHTML = '<div class="state">Pick two players to see who comes out on top! 🆚</div>'; return; }
+
+    // Fetch season stats on demand for either player that doesn't have them yet
+    if (!hasStats(a) || !hasStats(b)) {
+      out.innerHTML = '<div class="state"><div class="spinner"></div>Loading stats…</div>';
+      const token = cmpA + "|" + cmpB;
+      try { await Promise.all([a, b].filter(p => !hasStats(p)).map(p => fetchPlayerStats(p))); } catch {}
+      // bail if the user changed a selection while we were loading
+      if (token !== cmpA + "|" + cmpB) return;
+    }
+    if (!hasStats(a) || !hasStats(b)) {
+      out.innerHTML = '<div class="state">Couldn\'t load season stats for one of these players. 🏀</div>';
+      return;
+    }
+
+    out.innerHTML = `
+      <div class="cmp-heads">
+        <div class="cmp-head">${avatar(a, "av-cmp")}<div class="nm">${a.name}</div><div class="tm">${a.team}</div></div>
+        <div class="cmp-head">${avatar(b, "av-cmp")}<div class="nm">${b.name}</div><div class="tm">${b.team}</div></div>
+      </div>
+      ${rows.map(([k, lbl, d]) => {
+        const va = a.s[k] ?? 0, vb = b.s[k] ?? 0;
+        const aw = va > vb, bw = vb > va;
+        return `<div class="cmp-row">
+          <div class="cmp-val ${aw?"win":""}">${num(va, d)}</div>
+          <div class="cmp-lbl">${lbl}</div>
+          <div class="cmp-val ${bw?"win":""}">${num(vb, d)}</div>
+        </div>`;
+      }).join("")}`;
+  };
+  // Search-as-you-type picker for each slot
+  const wirePicker = (inputId, listId, setId) => {
+    const input = wrap.querySelector("#" + inputId);
+    const list = wrap.querySelector("#" + listId);
+    const renderList = () => {
+      const q = input.value.trim().toLowerCase();
+      if (!q) { list.innerHTML = ""; return; }
+      const matches = source.filter(p => p.name.toLowerCase().includes(q)).slice(0, 12);
+      list.innerHTML = matches.map(p => `
+        <div class="pick-item" data-id="${p.id}">
+          ${p.logo ? `<img src="${p.logo}" alt="" onerror="this.style.visibility='hidden'">` : ""}
+          <span class="pn">${p.name}</span><span class="pt">${p.team || ""}</span>
+        </div>`).join("");
+    };
+    input.addEventListener("input", () => {
+      if (!input.value.trim()) { setId(""); drawCmp(); } // clearing the box clears the pick
+      renderList();
+    });
+    input.addEventListener("focus", renderList);
+    input.addEventListener("blur", () => setTimeout(() => { list.innerHTML = ""; }, 150));
+    // mousedown fires before blur, so the selection registers before the list clears
+    list.addEventListener("mousedown", e => {
+      const item = e.target.closest(".pick-item");
+      if (!item) return;
+      setId(item.dataset.id);
+      input.value = lookup(item.dataset.id)?.name || "";
+      list.innerHTML = "";
+      input.blur();
+      drawCmp();
+    });
+  };
+  wirePicker("pickA", "listA", id => { cmpA = id; });
+  wirePicker("pickB", "listB", id => { cmpB = id; });
+  drawCmp();
+}
+
+/* ---- Favorites ---- */
+function renderFavorites() {
+  content.innerHTML = "";
+  const favTeams = getFavTeams().map(id => allTeams.find(t => t.id === id)).filter(Boolean);
+  const favs = getFavs().map(id => lookup(id)).filter(Boolean);
+  if (!favs.length && !favTeams.length) {
+    content.innerHTML = '<div class="state">No favorites yet!<br>' +
+      'Tap the ☆ star on any player or team to save them here. ⭐</div>';
+    return;
+  }
+  if (favTeams.length) {
+    const h = document.createElement("h2"); h.className = "fav-head"; h.textContent = "My Teams";
+    content.appendChild(h);
+    const grid = document.createElement("div"); grid.className = "teamgrid";
+    favTeams.forEach(t => grid.appendChild(teamCell(t)));
+    content.appendChild(grid);
+  }
+  if (favs.length) {
+    const h = document.createElement("h2"); h.className = "fav-head"; h.textContent = "My Players";
+    content.appendChild(h);
+    favs.sort((a, b) => (b.s?.avgPoints || 0) - (a.s?.avgPoints || 0) || a.name.localeCompare(b.name));
+    content.appendChild(cardsGrid(favs, "avgPoints", false));
+  }
+}
+
+/* ---------- Player detail modal ---------- */
+function statsHTML(s) {
+  const bar = (label, val) => `
+    <div class="bar">
+      <div class="top"><span>${label}</span><span>${num(val,1)}%</span></div>
+      <div class="track"><div class="fill" style="width:${Math.max(0,Math.min(100,val||0))}%"></div></div>
+    </div>`;
+  return `
+    <div class="biggrid">
+      <div class="bigstat"><div class="v">${num(s.avgPoints)}</div><div class="l">POINTS</div></div>
+      <div class="bigstat"><div class="v">${num(s.avgRebounds)}</div><div class="l">REBOUNDS</div></div>
+      <div class="bigstat"><div class="v">${num(s.avgAssists)}</div><div class="l">ASSISTS</div></div>
+    </div>
+    ${bar("Field Goal %", s.fieldGoalPct)}
+    ${bar("3-Point %", s.threePointFieldGoalPct)}
+    ${bar("Free Throw %", s.freeThrowPct)}
+    <div class="extra">
+      <div><div class="v">${num(s.avgSteals)}</div><div class="l">Steals</div></div>
+      <div><div class="v">${num(s.avgBlocks)}</div><div class="l">Blocks</div></div>
+      <div><div class="v">${num(s.avgMinutes)}</div><div class="l">Minutes</div></div>
+      <div><div class="v">${num(s.gamesPlayed,0)}</div><div class="l">Games</div></div>
+    </div>`;
+}
+
+async function openModal(p) {
+  const fav = isFav(p.id);
+  const shell = body => `
+    <button class="mfav ${fav?"on":""}" id="mfav">${fav?"★":"☆"}</button>
+    <button class="close" onclick="closeModal()">✕</button>
+    <h2 class="mname">${p.name}</h2>
+    <div class="mhead">
+      ${avatar(p, "av-lg")}
+      ${p.logo ? `<img class="mlogo" src="${p.logo}" alt="${p.team} logo" onerror="this.style.display='none'">` : ""}
+      <div class="mteam">${p.team}${p.pos ? " • " + p.pos : ""}</div>
+    </div>
+    ${body}`;
+  const modal = document.getElementById("modal");
+
+  const wireFav = () => {
+    const btn = document.getElementById("mfav");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      toggleFav(p.id);
+      const on = isFav(p.id);
+      btn.classList.toggle("on", on); btn.textContent = on ? "★" : "☆";
+      render();
+    });
+  };
+
+  document.getElementById("overlay").classList.add("show");
+
+  if (hasStats(p)) {
+    modal.innerHTML = shell(statsHTML(p.s));
+    wireFav();
+    return;
+  }
+  // Roster-only player: fetch their season stats now
+  modal.innerHTML = shell('<div class="state"><div class="spinner"></div>Loading stats…</div>');
+  wireFav();
+  try {
+    const s = await fetchPlayerStats(p);
+    modal.innerHTML = shell(statsHTML(s));
+    wireFav();
+    if (view === "players" || view === "teams") render(); // card can now show numbers
+  } catch {
+    modal.innerHTML = shell('<div class="state">No season stats available for this player yet. 🏀</div>');
+    wireFav();
+  }
+}
+function closeModal() { document.getElementById("overlay").classList.remove("show"); }
+
+/* ---------- Events ---------- */
+document.getElementById("nav").addEventListener("click", e => {
+  if (e.target.tagName === "BUTTON") {
+    view = e.target.dataset.view;
+    if (view === "teams") selectedTeam = null;
+    render();
+  }
+});
+document.getElementById("overlay").addEventListener("click", e => { if (e.target.id === "overlay") closeModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+/* ---------- Go! ---------- */
+loadData();
+</script>
+</body>
+</html>
