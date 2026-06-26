@@ -1,63 +1,76 @@
 #!/usr/bin/env python3
-"""Generate basketball app icons (PNG) with no third-party deps.
-Draws an orange basketball with seams on a navy tile, supersampled for smooth edges."""
+"""Generate basketball app icons (PNG), no third-party deps.
+Replicates the header SVG basketball: radial-gradient orange ball, dark rim,
+vertical + horizontal seams and two curved Bezier seams with round caps,
+on a navy tile. Supersampled for smooth edges."""
 import struct, zlib, math
 
 def lerp(a, b, t): return a + (b - a) * t
-def mix(c1, c2, t): return tuple(int(round(lerp(c1[i], c2[i], t))) for i in range(3))
+def mix(c1, c2, t):
+    t = 0.0 if t < 0 else 1.0 if t > 1 else t
+    return tuple(int(round(lerp(c1[i], c2[i], t))) for i in range(3))
+
+# Ball gradient stops (match header: #ff9b4a -> #e8731f @58% -> #bf520f)
+def grad(t):
+    if t <= 0.58: return mix((255, 155, 74), (232, 115, 31), t / 0.58)
+    return mix((232, 115, 31), (191, 82, 15), (t - 0.58) / 0.42)
+
+SEAM = (38, 24, 12)        # #2a1a0a
+BG_TOP, BG_BOT = (20, 27, 52), (8, 13, 26)
 
 def render(size, ss=3):
-    """Return list of (r,g,b) rows at `size`, supersampled by `ss`."""
     S = size * ss
-    cx = cy = S / 2.0
-    R = S * 0.46           # ball radius
-    lw = S * 0.012         # seam half-width
-    bg_top = (20, 27, 52)  # #141b34
-    bg_bot = (8, 13, 26)   # #080d1a
-    seam = (38, 24, 12)    # dark seam
-    # seam arc geometry (see notes): circles centered at (cx ± 0.75R, cy), radius 1.25R
-    arc_h = 0.75 * R
-    arc_r = 1.25 * R
-    px = []
+    sc = S / 100.0                 # SVG (0-100) units -> pixels
+    cx = cy = 50 * sc; R = 47 * sc
+    fx, fy, gr = 38.7 * sc, 33.0 * sc, 70.5 * sc  # radial-gradient focal + radius
+    sw = 1.5 * sc                  # seam half-width
+    ow = 1.4 * sc                  # rim half-width
+
+    buf = []
     for y in range(S):
         row = bytearray()
         for x in range(S):
-            dx, dy = x - cx, y - cy
-            d = math.hypot(dx, dy)
-            if d <= R:
-                # base ball color: radial highlight upper-left -> deep orange edge
-                hx, hy = cx - R * 0.32, cy - R * 0.42
-                hl = min(1.0, math.hypot(x - hx, y - hy) / (R * 1.5))
-                col = mix((255, 165, 80), (191, 82, 15), hl)
-                # seams
-                on_seam = False
-                if abs(dx) <= lw: on_seam = True                       # vertical
-                if abs(dy) <= lw: on_seam = True                       # horizontal
-                dl = abs(math.hypot(x - (cx + arc_h), y - cy) - arc_r)  # left-bowing arc
-                if dl <= lw and dx < 0: on_seam = True
-                dr = abs(math.hypot(x - (cx - arc_h), y - cy) - arc_r)  # right-bowing arc
-                if dr <= lw and dx > 0: on_seam = True
-                if on_seam:
-                    col = seam
-                # subtle dark rim
-                if d > R - lw * 1.6:
-                    col = mix(col, seam, 0.6)
-            else:
-                col = mix(bg_top, bg_bot, y / S)
+            d = math.hypot(x - cx, y - cy)
+            if d <= R - ow:                       # ball interior
+                col = grad(math.hypot(x - fx, y - fy) / gr)
+                if abs(x - cx) <= sw or abs(y - cy) <= sw:  # straight seams
+                    col = SEAM
+            elif d <= R + ow:                     # dark rim outline
+                col = SEAM
+            else:                                 # navy tile
+                col = mix(BG_TOP, BG_BOT, y / S)
             row += bytes(col)
-        px.append(row)
-    # downsample by ss (box filter)
+        buf.append(row)
+
+    # Curved seams: stamp round-capped strokes along two quadratic Beziers
+    arcs = [((18, 11), (41, 50), (18, 89)), ((82, 11), (59, 50), (82, 89))]
+    rad = sw
+    for p0, p1, p2 in arcs:
+        N = 260
+        for i in range(N + 1):
+            t = i / N; mt = 1 - t
+            bx = (mt*mt*p0[0] + 2*mt*t*p1[0] + t*t*p2[0]) * sc
+            by = (mt*mt*p0[1] + 2*mt*t*p1[1] + t*t*p2[1]) * sc
+            for yy in range(max(0, int(by - rad)), min(S, int(by + rad) + 1)):
+                base = buf[yy]
+                for xx in range(max(0, int(bx - rad)), min(S, int(bx + rad) + 1)):
+                    if (xx - bx)**2 + (yy - by)**2 <= rad*rad and math.hypot(xx - cx, yy - cy) <= R:
+                        p = xx * 3
+                        base[p], base[p+1], base[p+2] = SEAM
+    return downsample(buf, size, ss)
+
+def downsample(buf, size, ss):
     out = []
+    n = ss * ss
     for oy in range(size):
         orow = bytearray()
         for ox in range(size):
             r = g = b = 0
             for j in range(ss):
-                base = px[oy * ss + j]
+                base = buf[oy * ss + j]
                 for i in range(ss):
                     p = (ox * ss + i) * 3
-                    r += base[p]; g += base[p + 1]; b += base[p + 2]
-            n = ss * ss
+                    r += base[p]; g += base[p+1]; b += base[p+2]
             orow += bytes((r // n, g // n, b // n))
         out.append(bytes(orow))
     return out
@@ -66,15 +79,13 @@ def write_png(path, rows, size):
     def chunk(typ, data):
         c = typ + data
         return struct.pack(">I", len(data)) + c + struct.pack(">I", zlib.crc32(c) & 0xffffffff)
-    sig = b"\x89PNG\r\n\x1a\n"
-    ihdr = struct.pack(">IIBBBBB", size, size, 8, 2, 0, 0, 0)  # 8-bit RGB
+    ihdr = struct.pack(">IIBBBBB", size, size, 8, 2, 0, 0, 0)
     raw = bytearray()
     for r in rows:
-        raw.append(0)      # filter type none
-        raw += r
-    idat = zlib.compress(bytes(raw), 9)
+        raw.append(0); raw += r
     with open(path, "wb") as f:
-        f.write(sig + chunk(b"IHDR", ihdr) + chunk(b"IDAT", idat) + chunk(b"IEND", b""))
+        f.write(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr)
+                + chunk(b"IDAT", zlib.compress(bytes(raw), 9)) + chunk(b"IEND", b""))
 
 for sz in (180, 192, 512):
     write_png(f"icon-{sz}.png", render(sz), sz)
