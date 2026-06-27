@@ -14,18 +14,26 @@
 
 const GH = "https://api.github.com";
 
-function cors(env) {
+// ALLOW_ORIGIN may be a comma-separated allowlist; we reflect the matching origin.
+function pickOrigin(request, env) {
+  const allowed = (env.ALLOW_ORIGIN || "*").split(",").map(s => s.trim());
+  if (allowed.includes("*")) return "*";
+  const o = request.headers.get("Origin") || "";
+  return allowed.includes(o) ? o : allowed[0];
+}
+function corsHeaders(origin) {
   return {
-    "Access-Control-Allow-Origin": env.ALLOW_ORIGIN || "*",
+    "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "86400",
+    "Vary": "Origin",
   };
 }
-function json(body, env, status = 200) {
+function json(body, origin, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors(env) },
+    headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders(origin) },
   });
 }
 
@@ -75,22 +83,23 @@ async function writeFile(env, data, sha) {
 
 export default {
   async fetch(request, env) {
-    if (request.method === "OPTIONS") return new Response(null, { headers: cors(env) });
+    const origin = pickOrigin(request, env);
+    if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders(origin) });
     try {
       if (request.method === "GET") {
         const { data } = await readFile(env);
-        return json({ players: clean(data.players), teams: clean(data.teams) }, env);
+        return json({ players: clean(data.players), teams: clean(data.teams) }, origin);
       }
       if (request.method === "POST") {
         const incoming = await request.json().catch(() => ({}));
         const data = { players: clean(incoming.players), teams: clean(incoming.teams) };
         const { sha } = await readFile(env);   // current sha for a safe update
         await writeFile(env, data, sha);
-        return json(data, env);
+        return json(data, origin);
       }
-      return json({ error: "method not allowed" }, env, 405);
+      return json({ error: "method not allowed" }, origin, 405);
     } catch (e) {
-      return json({ error: String(e && e.message || e) }, env, 502);
+      return json({ error: String(e && e.message || e) }, origin, 502);
     }
   },
 };

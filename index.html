@@ -396,7 +396,7 @@ let standingsCache = null; // conference standings
    SYNC_URL points at the Cloudflare Worker. When empty, favorites are local-only
    (so the app still works before the Worker is deployed). localStorage is used
    as an instant + offline cache; the Worker is the shared source of truth. */
-const SYNC_URL = ""; // <-- set to the Worker URL once deployed
+const SYNC_URL = "https://nba-stats-sync.bryan-235.workers.dev"; // shared-favorites sync Worker
 let favData = loadLocalFavs();   // { players: [ids], teams: [ids] }
 let pushTimer = null;
 

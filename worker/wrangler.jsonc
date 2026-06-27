@@ -8,7 +8,7 @@
     "REPO": "bdmalley8/nba-stats",
     "BRANCH": "data",
     "FILE_PATH": "favorites.json",
-    "ALLOW_ORIGIN": "https://bdmalley8.github.io"
+    "ALLOW_ORIGIN": "https://bdmalley8.github.io,http://localhost:4178"
   },
   "observability": { "enabled": true }
 }
