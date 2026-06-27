@@ -389,28 +389,65 @@ function hasStats(p) { return p && p.s && Object.keys(p.s).length > 0; }
 
 const content = document.getElementById("content");
 
-/* ---------- Favorites (saved in the browser) ---------- */
-function getFavs() {
-  try { return JSON.parse(localStorage.getItem("nba_favs") || "[]"); }
-  catch { return []; }
-}
-function isFav(id) { return getFavs().includes(id); }
-// Favorite TEAMS (separate list)
-function getFavTeams() { try { return JSON.parse(localStorage.getItem("nba_fav_teams") || "[]"); } catch { return []; } }
-function isFavTeam(id) { return getFavTeams().includes(String(id)); }
-function toggleFavTeam(id) {
-  id = String(id);
-  const f = getFavTeams(); const i = f.indexOf(id);
-  if (i >= 0) f.splice(i, 1); else f.push(id);
-  localStorage.setItem("nba_fav_teams", JSON.stringify(f));
-}
 let scoresCache = null;    // today's games
 let standingsCache = null; // conference standings
-function toggleFav(id) {
-  const f = getFavs();
-  const i = f.indexOf(id);
-  if (i >= 0) f.splice(i, 1); else f.push(id);
-  localStorage.setItem("nba_favs", JSON.stringify(f));
+
+/* ---------- Favorites (shared across devices via the sync Worker) ----------
+   SYNC_URL points at the Cloudflare Worker. When empty, favorites are local-only
+   (so the app still works before the Worker is deployed). localStorage is used
+   as an instant + offline cache; the Worker is the shared source of truth. */
+const SYNC_URL = ""; // <-- set to the Worker URL once deployed
+let favData = loadLocalFavs();   // { players: [ids], teams: [ids] }
+let pushTimer = null;
+
+function loadLocalFavs() {
+  try {
+    return {
+      players: JSON.parse(localStorage.getItem("nba_favs") || "[]").map(String),
+      teams: JSON.parse(localStorage.getItem("nba_fav_teams") || "[]").map(String),
+    };
+  } catch { return { players: [], teams: [] }; }
+}
+function saveLocalFavs() {
+  localStorage.setItem("nba_favs", JSON.stringify(favData.players));
+  localStorage.setItem("nba_fav_teams", JSON.stringify(favData.teams));
+}
+function getFavs() { return favData.players; }
+function getFavTeams() { return favData.teams; }
+function isFav(id) { return favData.players.includes(String(id)); }
+function isFavTeam(id) { return favData.teams.includes(String(id)); }
+function toggleItem(list, id) {
+  id = String(id); const i = list.indexOf(id);
+  if (i >= 0) list.splice(i, 1); else list.push(id);
+}
+function toggleFav(id) { toggleItem(favData.players, id); saveLocalFavs(); pushFavs(); }
+function toggleFavTeam(id) { toggleItem(favData.teams, id); saveLocalFavs(); pushFavs(); }
+
+// Pull the shared list on startup
+async function pullFavs() {
+  if (!SYNC_URL) return;
+  try {
+    const r = await fetch(SYNC_URL, { cache: "no-store" });
+    if (!r.ok) return;
+    const d = await r.json();
+    favData = {
+      players: Array.isArray(d.players) ? d.players.map(String) : [],
+      teams: Array.isArray(d.teams) ? d.teams.map(String) : [],
+    };
+    saveLocalFavs();
+    render(); // reflect shared favorites once they arrive
+  } catch {}
+}
+// Push our list to the shared store (debounced so rapid taps = one write)
+function pushFavs() {
+  if (!SYNC_URL) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => {
+    fetch(SYNC_URL, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ players: favData.players, teams: favData.teams }),
+    }).catch(() => {});
+  }, 600);
 }
 
 /* ---------- Helpers ---------- */
@@ -1016,6 +1053,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal()
 
 /* ---------- Go! ---------- */
 loadData();
+pullFavs(); // load shared favorites (no-op until SYNC_URL is set)
 </script>
 </body>
 </html>

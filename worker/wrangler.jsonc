@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "nba-stats-sync",
+  "main": "worker.js",
+  "compatibility_date": "2026-06-20",
+  // Shared-favorites storage location. GH_TOKEN is a SECRET (set via `wrangler secret put GH_TOKEN`).
+  "vars": {
+    "REPO": "bdmalley8/nba-stats",
+    "BRANCH": "data",
+    "FILE_PATH": "favorites.json",
+    "ALLOW_ORIGIN": "https://bdmalley8.github.io"
+  },
+  "observability": { "enabled": true }
+}
