@@ -21,10 +21,12 @@ BG_TOP, BG_BOT = (20, 27, 52), (8, 13, 26)
 def render(size, ss=3):
     S = size * ss
     sc = S / 100.0                 # SVG (0-100) units -> pixels
-    cx = cy = 50 * sc; R = 47 * sc
-    fx, fy, gr = 38.7 * sc, 33.0 * sc, 70.5 * sc  # radial-gradient focal + radius
-    sw = 1.5 * sc                  # seam half-width
-    ow = 1.4 * sc                  # rim half-width
+    RB = 47 * 0.8                  # ball radius (shrunk ~20%) in SVG units
+    cx = cy = 50 * sc; R = RB * sc
+    fx, fy = (50 - 0.2404 * RB) * sc, (50 - 0.3617 * RB) * sc  # gradient focal (proportional)
+    gr = 1.5 * RB * sc             # gradient radius
+    sw = 0.0320 * RB * sc          # seam half-width (scales with ball)
+    ow = 0.0298 * RB * sc          # rim half-width
 
     buf = []
     for y in range(S):
@@ -43,7 +45,10 @@ def render(size, ss=3):
         buf.append(row)
 
     # Curved seams: stamp round-capped strokes along two quadratic Beziers
-    arcs = [((18, 11), (41, 50), (18, 89)), ((82, 11), (59, 50), (82, 89))]
+    rr = RB / 47.0                 # scale the curved seams with the shrunk ball
+    s = lambda p: (50 + (p[0] - 50) * rr, 50 + (p[1] - 50) * rr)
+    arcs = [tuple(s(p) for p in tri)
+            for tri in (((18, 11), (41, 50), (18, 89)), ((82, 11), (59, 50), (82, 89)))]
     rad = sw
     for p0, p1, p2 in arcs:
         N = 260
