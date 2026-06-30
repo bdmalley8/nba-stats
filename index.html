@@ -125,6 +125,44 @@
   .avatar.av-sm { width: 64px; height: 64px; border: 2px solid var(--accent); font-size: 20px; }
   .avatar.av-lg { width: 76px; height: 76px; border: 3px solid var(--accent); font-size: 24px; }
   .avatar.av-cmp { width: 78px; height: 78px; border: 3px solid var(--accent); font-size: 24px; margin: 0 auto; }
+  .avatar.av-guess { width: 120px; height: 120px; border: 3px solid var(--accent); font-size: 36px; margin: 0 auto; }
+
+  /* Guess-the-Player game */
+  .game-wrap { max-width: 460px; margin: 0 auto; padding: 0 16px; }
+  .game-score { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+  .game-score b { color: var(--accent2); }
+  .game-card { background: var(--card); border-radius: 20px; padding: 22px 18px; text-align: center; border: 1px solid rgba(255,255,255,0.06); }
+  .guess-q { font-weight: 800; font-size: 18px; margin-bottom: 14px; }
+  .guess-avatar .avatar img { filter: blur(16px); }
+  .guess-avatar.reveal .avatar img { filter: none; transition: filter .35s ease; }
+  .guess-stats { display: flex; justify-content: center; gap: 22px; margin: 16px 0 4px; }
+  .guess-stats b { font-size: 24px; font-weight: 900; color: var(--accent2); display: block; }
+  .guess-stats span { font-size: 11px; color: var(--muted); }
+  .guess-team { color: var(--muted); font-size: 13px; font-weight: 600; min-height: 18px; margin-bottom: 14px; }
+  .guess-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .guess-opt { border: none; background: var(--card-hi); color: var(--text); font-weight: 700; font-size: 14px; padding: 13px 8px; border-radius: 12px; cursor: pointer; transition: transform .1s ease, background .15s ease; }
+  .guess-opt:hover:not(:disabled) { transform: translateY(-2px); background: #2c3a63; }
+  .guess-opt.correct { background: linear-gradient(90deg, var(--good), var(--blue)); color: #07291d; }
+  .guess-opt.wrong { background: #6e2230; color: #ffd7dd; }
+  .guess-next { margin-top: 16px; }
+  .nextbtn { border: none; background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #1a1205; font-weight: 800; font-size: 15px; padding: 12px 26px; border-radius: 999px; cursor: pointer; }
+
+  /* Dream-team builder */
+  .dream-wrap { max-width: 700px; margin: 0 auto; padding: 0 16px; }
+  .dream-head { text-align: center; font-weight: 800; font-size: 17px; margin-bottom: 16px; }
+  .dream-full { text-align: center; color: var(--muted); margin-bottom: 16px; }
+  .dream-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .dream-card { position: relative; background: var(--card); border-radius: 14px; padding: 14px 10px; text-align: center; border-top: 3px solid var(--team); }
+  .dream-card .avatar { margin: 0 auto 8px; cursor: pointer; }
+  .dream-x { position: absolute; top: 6px; right: 8px; background: rgba(0,0,0,0.3); border: none; color: #ff9aa6; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; }
+  .dream-nm { font-weight: 700; font-size: 13.5px; line-height: 1.2; }
+  .dream-line { color: var(--accent2); font-weight: 800; font-size: 13px; margin-top: 4px; }
+  .dream-totals { background: var(--card); border-radius: 16px; padding: 16px; border: 1px solid rgba(255,255,255,0.06); }
+  .dt-title { text-align: center; font-weight: 800; color: var(--accent2); margin-bottom: 12px; }
+  .dt-grid { display: flex; justify-content: space-around; margin-bottom: 10px; }
+  .dt-grid div { text-align: center; }
+  .dt-grid b { font-size: 22px; font-weight: 900; display: block; }
+  .dt-grid span { font-size: 11px; color: var(--muted); letter-spacing: .5px; }
   .name { font-weight: 800; font-size: 17px; line-height: 1.15; padding-right: 26px; }
   .meta { color: var(--muted); font-size: 12.5px; margin-top: 3px; display: flex; align-items: center; gap: 6px; }
   .meta img.logo { width: 16px; height: 16px; }
@@ -261,6 +299,17 @@
   .bar .top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
   .bar .track { height: 10px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
   .bar .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--blue), var(--good)); }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 16px; }
+  .badge { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: var(--text); font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; }
+  .gamelog { margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; }
+  .gl-title { font-weight: 800; font-size: 14px; text-align: center; color: var(--accent2); margin-bottom: 6px; }
+  .gl-head { font-size: 11px; color: var(--muted); text-align: right; margin-bottom: 4px; }
+  .gl-row { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 2px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .gl-date { width: 50px; color: var(--muted); flex: none; }
+  .gl-opp { width: 56px; font-weight: 700; flex: none; }
+  .gl-res { width: 16px; font-weight: 800; flex: none; }
+  .gl-W { color: var(--good); } .gl-L { color: #ff6b6b; }
+  .gl-line { margin-left: auto; font-weight: 800; }
   .extra { display: flex; justify-content: space-around; margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; }
   .extra .v { font-weight: 800; font-size: 17px; }
   .extra .l { font-size: 11px; color: var(--muted); text-align: center; }
@@ -270,9 +319,43 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .retry { margin-top: 14px; background: var(--accent); border: none; color: #1a1205; font-weight: 800; padding: 10px 22px; border-radius: 999px; cursor: pointer; }
   footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; padding: 0 16px; }
+
+  /* Theme toggle button */
+  .theme-toggle {
+    position: fixed; z-index: 40;
+    top: calc(10px + env(safe-area-inset-top)); right: calc(10px + env(safe-area-inset-right));
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12);
+    background: var(--card); color: var(--text); font-size: 18px; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  }
+
+  /* ---------- Light theme ---------- */
+  body.light {
+    --bg: #eef2fb; --bg2: #dde4f2; --card: #ffffff; --card-hi: #eef2fb;
+    --text: #16203a; --muted: #5d6b8c;
+    background: radial-gradient(1200px 600px at 50% -10%, #dbe6ff 0%, transparent 60%),
+                linear-gradient(160deg, #eef2fb 0%, #dde4f2 100%);
+  }
+  body.light .theme-toggle { border-color: rgba(0,0,0,0.1); box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+  body.light .controls { background: linear-gradient(180deg, rgba(238,242,251,0.97), rgba(238,242,251,0.85)); border-bottom-color: rgba(0,0,0,0.08); }
+  body.light #search, body.light .pick-input { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.12); }
+  body.light .card, body.light .teamcell, body.light .game-card, body.light .dream-card,
+  body.light .dream-totals, body.light .stand-row, body.light .pod { border-color: rgba(0,0,0,0.08); }
+  body.light .card { border-left-color: var(--team, rgba(0,0,0,0.08)); }
+  body.light .bigstat, body.light .cmp-val, body.light .pod-stand { background: rgba(0,0,0,0.05); }
+  body.light .badge { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
+  body.light .bar .track { background: rgba(0,0,0,0.1); }
+  body.light .pick-list { border-color: rgba(0,0,0,0.12); box-shadow: 0 14px 34px rgba(0,0,0,0.18); }
+  body.light .pick-item:hover, body.light .guess-opt:hover:not(:disabled), body.light .stand-row:hover { background: rgba(0,0,0,0.05); }
+  body.light .extra, body.light .gamelog { border-top-color: rgba(0,0,0,0.08); }
+  body.light .gl-row { border-bottom-color: rgba(0,0,0,0.06); }
+  body.light .spinner { border-color: rgba(0,0,0,0.12); border-top-color: var(--accent); }
+  body.light .card, body.light .teamcell, body.light .pod, body.light .game-card,
+  body.light .dream-card, body.light .dream-totals { box-shadow: 0 2px 8px rgba(20,30,60,0.06); }
 </style>
 </head>
 <body>
+  <button id="theme" class="theme-toggle" title="Toggle light/dark" aria-label="Toggle theme">🌙</button>
   <header>
     <div class="title">
       <!-- Inline SVG basketball so it always looks right, no matter the device -->
@@ -301,6 +384,8 @@
       <button data-view="scores">Scores</button>
       <button data-view="standings">Standings</button>
       <button data-view="compare">Compare</button>
+      <button data-view="game">🎮 Game</button>
+      <button data-view="dreamteam">Dream Team</button>
       <button data-view="favorites">⭐ Favorites</button>
     </div>
   </header>
@@ -647,6 +732,8 @@ function render() {
   else if (view === "scores")    renderScores();
   else if (view === "standings") renderStandings();
   else if (view === "compare")   renderCompare();
+  else if (view === "game")      renderGame();
+  else if (view === "dreamteam") renderDreamTeam();
   else if (view === "favorites") renderFavorites();
 }
 
@@ -845,6 +932,155 @@ async function renderStandings() {
   content.appendChild(wrap);
 }
 
+/* ---- Guess-the-Player game ---- */
+let gameState = null;
+let gameScore = 0, gameStreak = 0;
+let gameBest = +(localStorage.getItem("nba_game_best") || 0);
+
+function newQuestion() {
+  // Use well-known players: top ~80 scorers with a photo + stats
+  const known = allPlayers.filter(p => p.shot && hasStats(p)).slice(0, 80);
+  const pick = () => known[Math.floor(Math.random() * known.length)];
+  const mystery = pick();
+  const used = new Set([mystery.id]);
+  const opts = [mystery];
+  while (opts.length < 4 && used.size < known.length) {
+    const c = pick();
+    if (used.has(c.id)) continue;
+    used.add(c.id); opts.push(c);
+  }
+  for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+  gameState = { mystery, options: opts, answered: false };
+}
+
+function renderGame() {
+  content.innerHTML = "";
+  const known = allPlayers.filter(p => p.shot && hasStats(p));
+  if (known.length < 4) { content.innerHTML = '<div class="state"><div class="spinner"></div>Loading players…</div>'; return; }
+  if (!gameState) newQuestion();
+  const { mystery, options, answered } = gameState;
+  const s = mystery.s;
+  const wrap = document.createElement("div");
+  wrap.className = "game-wrap";
+  wrap.innerHTML = `
+    <div class="game-score">🏆 Score <b>${gameScore}</b> &nbsp;·&nbsp; 🔥 Streak <b>${gameStreak}</b> &nbsp;·&nbsp; ⭐ Best <b>${gameBest}</b></div>
+    <div class="game-card">
+      <div class="guess-q">Who is this player?</div>
+      <div class="guess-avatar ${answered ? "reveal" : ""}">${avatar(mystery, "av-guess")}</div>
+      <div class="guess-stats">
+        <div><b>${num(s.avgPoints)}</b><span>PPG</span></div>
+        <div><b>${num(s.avgRebounds)}</b><span>RPG</span></div>
+        <div><b>${num(s.avgAssists)}</b><span>APG</span></div>
+      </div>
+      <div class="guess-team">${answered ? `${mystery.team}${mystery.pos ? " • " + mystery.pos : ""}` : "&nbsp;"}</div>
+      <div class="guess-options">
+        ${options.map(o => `<button class="guess-opt" data-id="${o.id}">${o.name}</button>`).join("")}
+      </div>
+      <div class="guess-next"><button class="nextbtn" id="nextq">Next player ▶</button></div>
+    </div>`;
+  content.appendChild(wrap);
+
+  wrap.querySelectorAll(".guess-opt").forEach(btn => btn.addEventListener("click", () => {
+    if (gameState.answered) return;
+    gameState.answered = true;
+    const correct = btn.dataset.id === mystery.id;
+    wrap.querySelectorAll(".guess-opt").forEach(b => {
+      b.disabled = true;
+      if (b.dataset.id === mystery.id) b.classList.add("correct");
+      else if (b === btn) b.classList.add("wrong");
+    });
+    if (correct) {
+      gameScore++; gameStreak++;
+      if (gameStreak > gameBest) { gameBest = gameStreak; localStorage.setItem("nba_game_best", gameBest); }
+    } else { gameStreak = 0; }
+    wrap.querySelector(".guess-avatar").classList.add("reveal");
+    wrap.querySelector(".guess-team").innerHTML = `${mystery.team}${mystery.pos ? " • " + mystery.pos : ""}`;
+    wrap.querySelector(".game-score").innerHTML =
+      `🏆 Score <b>${gameScore}</b> &nbsp;·&nbsp; 🔥 Streak <b>${gameStreak}</b> &nbsp;·&nbsp; ⭐ Best <b>${gameBest}</b>`;
+  }));
+  wrap.querySelector("#nextq").addEventListener("click", () => { newQuestion(); renderGame(); });
+}
+
+/* ---- Dream-team builder ---- */
+let dreamTeam = (() => { try { return JSON.parse(localStorage.getItem("nba_dream") || "[]").map(String); } catch { return []; } })();
+function saveDream() { localStorage.setItem("nba_dream", JSON.stringify(dreamTeam)); }
+
+function renderDreamTeam() {
+  content.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "dream-wrap";
+  const full = dreamTeam.length >= 5;
+  wrap.innerHTML = `
+    <div class="dream-head">Build your Dream Team — pick up to 5 players 🏀</div>
+    ${full ? `<div class="dream-full">Roster full (5)! Remove a player to swap someone in.</div>`
+           : `<div class="picker"><input class="pick-input" id="dreamPick" type="text" placeholder="🔍 Add a player…" autocomplete="off"><div class="pick-list" id="dreamList"></div></div>`}
+    <div id="dreamRoster"><div class="state" style="padding:20px"><div class="spinner"></div>Loading…</div></div>`;
+  content.appendChild(wrap);
+
+  // Add-player search picker
+  if (!full) {
+    const source = (leagueReady ? Object.values(leagueIndex) : allPlayers).slice().sort((a, b) => a.name.localeCompare(b.name));
+    const input = wrap.querySelector("#dreamPick"), list = wrap.querySelector("#dreamList");
+    const renderList = () => {
+      const q = input.value.trim().toLowerCase();
+      if (!q) { list.innerHTML = ""; return; }
+      list.innerHTML = source.filter(p => p.name.toLowerCase().includes(q) && !dreamTeam.includes(String(p.id)))
+        .slice(0, 12).map(p => `<div class="pick-item" data-id="${p.id}">
+          ${p.logo ? `<img src="${p.logo}" alt="" onerror="this.style.visibility='hidden'">` : ""}
+          <span class="pn">${p.name}</span><span class="pt">${p.team || ""}</span></div>`).join("");
+    };
+    input.addEventListener("input", renderList);
+    input.addEventListener("focus", renderList);
+    input.addEventListener("blur", () => setTimeout(() => { list.innerHTML = ""; }, 150));
+    list.addEventListener("mousedown", e => {
+      const item = e.target.closest(".pick-item"); if (!item) return;
+      dreamTeam.push(String(item.dataset.id)); saveDream(); renderDreamTeam();
+    });
+  }
+  drawDreamRoster(wrap.querySelector("#dreamRoster"));
+}
+
+async function drawDreamRoster(box) {
+  const players = dreamTeam.map(id => lookup(id)).filter(Boolean);
+  // make sure every selected player has stats (fetch roster-only ones)
+  await Promise.all(players.filter(p => !hasStats(p)).map(p => fetchPlayerStats(p).catch(() => {})));
+  if (!box.isConnected) return; // user navigated away
+  if (!players.length) {
+    box.innerHTML = '<div class="state">No players yet — search above to add your starting five! 🌟</div>';
+    return;
+  }
+  const sum = k => players.reduce((t, p) => t + (p.s?.[k] || 0), 0);
+  const avg = k => players.length ? sum(k) / players.length : 0;
+  box.innerHTML = `
+    <div class="dream-grid">
+      ${players.map(p => `
+        <div class="dream-card" style="--team:${teamColor(p.teamId)}">
+          <button class="dream-x" data-id="${p.id}" title="Remove">✕</button>
+          ${avatar(p, "av-sm")}
+          <div class="dream-nm">${p.name}</div>
+          <div class="dream-line">${num(p.s?.avgPoints)} / ${num(p.s?.avgRebounds)} / ${num(p.s?.avgAssists)}</div>
+        </div>`).join("")}
+    </div>
+    <div class="dream-totals">
+      <div class="dt-title">Team Totals (${players.length}/5)</div>
+      <div class="dt-grid">
+        <div><b>${num(sum("avgPoints"))}</b><span>TEAM PPG</span></div>
+        <div><b>${num(sum("avgRebounds"))}</b><span>TEAM RPG</span></div>
+        <div><b>${num(sum("avgAssists"))}</b><span>TEAM APG</span></div>
+      </div>
+      <div class="dt-grid">
+        <div><b>${num(avg("fieldGoalPct"))}%</b><span>AVG FG</span></div>
+        <div><b>${num(avg("threePointFieldGoalPct"))}%</b><span>AVG 3PT</span></div>
+        <div><b>${num(avg("freeThrowPct"))}%</b><span>AVG FT</span></div>
+      </div>
+    </div>`;
+  box.querySelectorAll(".dream-x").forEach(btn => btn.addEventListener("click", () => {
+    dreamTeam = dreamTeam.filter(id => id !== btn.dataset.id); saveDream(); renderDreamTeam();
+  }));
+  box.querySelectorAll(".dream-card .avatar").forEach((av, i) =>
+    av.addEventListener("click", () => { if (players[i]) openModal(players[i]); }));
+}
+
 /* ---- Compare ---- */
 let cmpA = "", cmpB = "";
 function renderCompare() {
@@ -970,6 +1206,29 @@ function renderFavorites() {
 }
 
 /* ---------- Player detail modal ---------- */
+// Fun achievement badges derived from season averages
+function badgesHTML(s) {
+  const p = s.avgPoints || 0, r = s.avgRebounds || 0, a = s.avgAssists || 0;
+  const st = s.avgSteals || 0, bl = s.avgBlocks || 0;
+  const fg = s.fieldGoalPct || 0, tp = s.threePointFieldGoalPct || 0, ft = s.freeThrowPct || 0;
+  const dd = [p >= 10, r >= 10, a >= 10].filter(Boolean).length;
+  const b = [];
+  if (p >= 28) b.push("🔥 Superstar Scorer");
+  else if (p >= 22) b.push("🏀 Big-Time Scorer");
+  else if (p >= 16) b.push("🪣 Bucket Getter");
+  if (dd >= 2) b.push("💪 Double-Double Machine");
+  if (p >= 20 && r >= 5 && a >= 5) b.push("🌟 Do-It-All");
+  if (r >= 10) b.push("🙌 Rebound King");
+  if (a >= 7) b.push("🤝 Playmaker");
+  if (tp >= 40) b.push("🎯 Sharpshooter");
+  if (ft >= 90) b.push("🆓 Free-Throw Ace");
+  if (bl >= 1.5) b.push("🛡️ Rim Protector");
+  if (st >= 1.5) b.push("🧤 Ball Hawk");
+  if (fg >= 55) b.push("✅ Mr. Efficient");
+  if (!b.length) b.push("📊 Rotation Player");
+  return `<div class="badges">${b.slice(0, 6).map(t => `<span class="badge">${t}</span>`).join("")}</div>`;
+}
+
 function statsHTML(s) {
   const bar = (label, val) => `
     <div class="bar">
@@ -982,6 +1241,7 @@ function statsHTML(s) {
       <div class="bigstat"><div class="v">${num(s.avgRebounds)}</div><div class="l">REBOUNDS</div></div>
       <div class="bigstat"><div class="v">${num(s.avgAssists)}</div><div class="l">ASSISTS</div></div>
     </div>
+    ${badgesHTML(s)}
     ${bar("Field Goal %", s.fieldGoalPct)}
     ${bar("3-Point %", s.threePointFieldGoalPct)}
     ${bar("Free Throw %", s.freeThrowPct)}
@@ -990,7 +1250,53 @@ function statsHTML(s) {
       <div><div class="v">${num(s.avgBlocks)}</div><div class="l">Blocks</div></div>
       <div><div class="v">${num(s.avgMinutes)}</div><div class="l">Minutes</div></div>
       <div><div class="v">${num(s.gamesPlayed,0)}</div><div class="l">Games</div></div>
+    </div>
+    <div class="gamelog" id="gamelog">
+      <div class="gl-title">Recent Games</div>
+      <div class="state" style="padding:16px"><div class="spinner"></div>Loading games…</div>
     </div>`;
+}
+
+// Fetch + render a player's most recent games into the modal's #gamelog box
+async function loadGameLog(p) {
+  const box = document.getElementById("gamelog");
+  if (!box) return;
+  try {
+    const r = await fetch(`${PLAYER_STATS_API}/${p.id}/gamelog`);
+    if (!r.ok) throw new Error("gamelog " + r.status);
+    const d = await r.json();
+    const names = d.names || [];
+    const col = n => { const i = names.indexOf(n); return v => (v && v[i] !== undefined ? v[i] : "—"); };
+    const pts = col("points"), reb = col("totalRebounds"), ast = col("assists");
+    const events = d.events || {};
+    const seen = new Set(), rows = [];
+    (d.seasonTypes || []).forEach(stype =>
+      (stype.categories || []).forEach(cat =>
+        (cat.events || []).forEach(ev => {
+          const meta = events[ev.eventId];
+          if (!meta || seen.has(meta.id)) return;
+          seen.add(meta.id);
+          rows.push({ meta, stats: ev.stats });
+        })));
+    rows.sort((a, b) => new Date(b.meta.gameDate) - new Date(a.meta.gameDate));
+    const recent = rows.slice(0, 8);
+    if (!recent.length) { box.innerHTML = `<div class="gl-title">Recent Games</div><div class="state" style="padding:14px">No recent games.</div>`; return; }
+    box.innerHTML = `<div class="gl-title">Recent Games</div>
+      <div class="gl-head">PTS / REB / AST</div>` +
+      recent.map(({ meta, stats }) => {
+        const d2 = new Date(meta.gameDate);
+        const date = isNaN(d2) ? "" : d2.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        const res = meta.gameResult || "";
+        return `<div class="gl-row">
+          <span class="gl-date">${date}</span>
+          <span class="gl-opp">${meta.atVs || ""} ${meta.opponent?.abbreviation || ""}</span>
+          <span class="gl-res gl-${res}">${res}</span>
+          <span class="gl-line">${pts(stats)} / ${reb(stats)} / ${ast(stats)}</span>
+        </div>`;
+      }).join("");
+  } catch {
+    box.innerHTML = `<div class="gl-title">Recent Games</div><div class="state" style="padding:14px">Couldn't load recent games.</div>`;
+  }
 }
 
 async function openModal(p) {
@@ -1023,6 +1329,7 @@ async function openModal(p) {
   if (hasStats(p)) {
     modal.innerHTML = shell(statsHTML(p.s));
     wireFav();
+    loadGameLog(p);
     return;
   }
   // Roster-only player: fetch their season stats now
@@ -1032,6 +1339,7 @@ async function openModal(p) {
     const s = await fetchPlayerStats(p);
     modal.innerHTML = shell(statsHTML(s));
     wireFav();
+    loadGameLog(p);
     if (view === "players" || view === "teams") render(); // card can now show numbers
   } catch {
     modal.innerHTML = shell('<div class="state">No season stats available for this player yet. 🏀</div>');
@@ -1050,6 +1358,21 @@ document.getElementById("nav").addEventListener("click", e => {
 });
 document.getElementById("overlay").addEventListener("click", e => { if (e.target.id === "overlay") closeModal(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+/* ---------- Theme (light/dark) ---------- */
+function applyTheme(t) {
+  document.body.classList.toggle("light", t === "light");
+  document.getElementById("theme").textContent = t === "light" ? "☀️" : "🌙";
+  const m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.setAttribute("content", t === "light" ? "#eef2fb" : "#0b1020");
+}
+let theme = localStorage.getItem("nba_theme") || "dark";
+applyTheme(theme);
+document.getElementById("theme").addEventListener("click", () => {
+  theme = theme === "light" ? "dark" : "light";
+  localStorage.setItem("nba_theme", theme);
+  applyTheme(theme);
+});
 
 /* ---------- Go! ---------- */
 loadData();
