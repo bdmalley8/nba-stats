@@ -937,9 +937,22 @@ let gameState = null;
 let gameScore = 0, gameStreak = 0;
 let gameBest = +(localStorage.getItem("nba_game_best") || 0);
 
+// Verified pool: top scorers whose headshot actually loads (so no blank faces,
+// and the image is cached → it shows instantly instead of blank-then-pop).
+let gamePool = null;
+async function buildGamePool() {
+  const cand = allPlayers.filter(p => p.shot && hasStats(p)).slice(0, 90);
+  const checked = await Promise.all(cand.map(p => new Promise(res => {
+    const img = new Image();
+    img.onload = () => res(img.naturalWidth > 1 ? p : null);
+    img.onerror = () => res(null);
+    img.src = p.shot;
+  })));
+  gamePool = checked.filter(Boolean).slice(0, 80);
+}
+
 function newQuestion() {
-  // Use well-known players: top ~80 scorers with a photo + stats
-  const known = allPlayers.filter(p => p.shot && hasStats(p)).slice(0, 80);
+  const known = gamePool;
   const pick = () => known[Math.floor(Math.random() * known.length)];
   const mystery = pick();
   const used = new Set([mystery.id]);
@@ -955,8 +968,13 @@ function newQuestion() {
 
 function renderGame() {
   content.innerHTML = "";
-  const known = allPlayers.filter(p => p.shot && hasStats(p));
-  if (known.length < 4) { content.innerHTML = '<div class="state"><div class="spinner"></div>Loading players…</div>'; return; }
+  if (!allPlayers.length) { content.innerHTML = '<div class="state"><div class="spinner"></div>Loading players…</div>'; return; }
+  if (!gamePool) {
+    content.innerHTML = '<div class="state"><div class="spinner"></div>Loading players…</div>';
+    buildGamePool().then(() => { if (view === "game") renderGame(); });
+    return;
+  }
+  if (gamePool.length < 4) { content.innerHTML = '<div class="state">Not enough players with photos to play right now. 🏀</div>'; return; }
   if (!gameState) newQuestion();
   const { mystery, options, answered } = gameState;
   const s = mystery.s;
